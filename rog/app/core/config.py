@@ -36,6 +36,7 @@ class Settings:
     access_token_expire_minutes: int
     storage_dir: str
     max_upload_mb: int
+    alert_check_interval_seconds: int
     log_level: str
     log_dir: str
 
@@ -51,6 +52,7 @@ def get_settings() -> Settings:
     access_token_expire_minutes_raw = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60").strip()
     storage_dir = os.getenv("STORAGE_DIR", "storage").strip()
     max_upload_mb_raw = os.getenv("MAX_UPLOAD_MB", "25").strip()
+    alert_check_interval_seconds_raw = os.getenv("ALERT_CHECK_INTERVAL_SECONDS", "86400").strip()
 
     if not database_url:
         raise RuntimeError("DATABASE_URL is required")
@@ -70,9 +72,15 @@ def get_settings() -> Settings:
         max_upload_mb = int(max_upload_mb_raw)
     except ValueError as e:
         raise RuntimeError("MAX_UPLOAD_MB must be an integer") from e
+    try:
+        alert_check_interval_seconds = int(alert_check_interval_seconds_raw)
+    except ValueError as e:
+        raise RuntimeError("ALERT_CHECK_INTERVAL_SECONDS must be an integer") from e
 
     if max_upload_mb <= 0:
         raise RuntimeError("MAX_UPLOAD_MB must be > 0")
+    if alert_check_interval_seconds <= 0:
+        raise RuntimeError("ALERT_CHECK_INTERVAL_SECONDS must be > 0")
     if not storage_dir:
         raise RuntimeError("STORAGE_DIR is required")
 
@@ -88,6 +96,7 @@ def get_settings() -> Settings:
         access_token_expire_minutes=access_token_expire_minutes,
         storage_dir=storage_dir,
         max_upload_mb=max_upload_mb,
+        alert_check_interval_seconds=alert_check_interval_seconds,
         log_level=log_level,
         log_dir=log_dir,
     )
