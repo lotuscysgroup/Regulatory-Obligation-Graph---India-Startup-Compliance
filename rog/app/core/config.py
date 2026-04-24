@@ -34,6 +34,8 @@ class Settings:
     secret_key: str
     jwt_algorithm: str
     access_token_expire_minutes: int
+    storage_dir: str
+    max_upload_mb: int
     log_level: str
     log_dir: str
 
@@ -47,6 +49,8 @@ def get_settings() -> Settings:
     secret_key = os.getenv("SECRET_KEY", "").strip()
     jwt_algorithm = os.getenv("JWT_ALGORITHM", "HS256").strip()
     access_token_expire_minutes_raw = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60").strip()
+    storage_dir = os.getenv("STORAGE_DIR", "storage").strip()
+    max_upload_mb_raw = os.getenv("MAX_UPLOAD_MB", "25").strip()
 
     if not database_url:
         raise RuntimeError("DATABASE_URL is required")
@@ -62,6 +66,16 @@ def get_settings() -> Settings:
     except ValueError as e:
         raise RuntimeError("ACCESS_TOKEN_EXPIRE_MINUTES must be an integer") from e
 
+    try:
+        max_upload_mb = int(max_upload_mb_raw)
+    except ValueError as e:
+        raise RuntimeError("MAX_UPLOAD_MB must be an integer") from e
+
+    if max_upload_mb <= 0:
+        raise RuntimeError("MAX_UPLOAD_MB must be > 0")
+    if not storage_dir:
+        raise RuntimeError("STORAGE_DIR is required")
+
     log_level = os.getenv("LOG_LEVEL", "INFO").upper()
     log_dir = os.getenv("LOG_DIR", "logs")
 
@@ -72,6 +86,8 @@ def get_settings() -> Settings:
         secret_key=secret_key,
         jwt_algorithm=jwt_algorithm,
         access_token_expire_minutes=access_token_expire_minutes,
+        storage_dir=storage_dir,
+        max_upload_mb=max_upload_mb,
         log_level=log_level,
         log_dir=log_dir,
     )
