@@ -26,4 +26,5 @@ class RegulationVersion(BaseModel):
     uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
 
     regulation = relationship("Regulation", back_populates="versions")
+    sections = relationship("Section", back_populates="regulation_version", cascade="all,delete-orphan")
 

@@ -16,6 +16,7 @@ from rog.app.models.regulation import Regulation
 from rog.app.models.regulation_version import RegulationVersion
 from rog.app.models.user import User
 from rog.app.schemas.regulations import RegulationResponse, RegulationVersionResponse
+from rog.app.services.document_processor import DocumentProcessor
 from rog.app.utils.storage import regulation_version_path
 
 router = APIRouter()
@@ -102,6 +103,13 @@ async def upload_regulation(
     db.add(reg_version)
     db.commit()
     db.refresh(reg_version)
+
+    processor = DocumentProcessor(db)
+    processor.process_and_store(
+        regulation_version_id=reg_version.id,
+        file_path=reg_version.file_path,
+        file_type=reg_version.file_type,
+    )
 
     logger.info("regulation_uploaded regulation_id=%s version=%s user_id=%s", regulation.id, reg_version.version_number, current_user.id)
 
