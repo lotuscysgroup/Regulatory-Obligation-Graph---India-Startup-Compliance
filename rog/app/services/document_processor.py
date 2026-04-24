@@ -11,6 +11,7 @@ import pdfplumber
 from sqlalchemy.orm import Session
 
 from rog.app.models.section import Section
+from rog.app.services.obligation_extractor import ObligationExtractor
 
 logger = logging.getLogger(__name__)
 
@@ -119,6 +120,7 @@ class DocumentProcessor:
             candidates = detect_sections(cleaned)
 
             number_to_id: dict[str, uuid.UUID] = {}
+            created_section_ids: list[uuid.UUID] = []
             created = 0
             for c in candidates:
                 parent_id = None
@@ -137,14 +139,18 @@ class DocumentProcessor:
                 self.db.add(section)
                 self.db.flush()
                 created += 1
+                created_section_ids.append(section.id)
                 if c.section_number:
                     number_to_id[c.section_number] = section.id
 
+            obligation_extractor = ObligationExtractor(self.db)
+            obligations_created = obligation_extractor.extract_for_sections(section_ids=created_section_ids)
             self.db.commit()
             logger.info(
-                "extraction_success regulation_version_id=%s sections_created=%s",
+                "extraction_success regulation_version_id=%s sections_created=%s obligations_created=%s",
                 regulation_version_id,
                 created,
+                obligations_created,
             )
             return created
         except Exception:

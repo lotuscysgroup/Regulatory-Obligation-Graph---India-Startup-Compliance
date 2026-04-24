@@ -32,4 +32,5 @@ class Section(BaseModel):
     regulation_version = relationship("RegulationVersion", back_populates="sections")
     parent = relationship("Section", remote_side="Section.id", back_populates="children")
     children = relationship("Section", back_populates="parent")
+    obligations = relationship("Obligation", back_populates="section", cascade="all,delete-orphan")
 
